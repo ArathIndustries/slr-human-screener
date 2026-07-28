@@ -376,7 +376,14 @@ $("startbtn").addEventListener("click", () => {
 });
 
 /* ------------------------------------------------------------- rendering -- */
-function rec() { return S.corpus.records[S.queue[S.qi] - 833]; }
+function byId() {
+  if (!S._byId || S._byIdSrc !== S.corpus) {
+    S._byId = new Map(S.corpus.records.map(r => [r.id, r]));
+    S._byIdSrc = S.corpus;
+  }
+  return S._byId;
+}
+function rec() { return byId().get(S.queue[S.qi]); }
 
 function showRow() {
   const r = rec();
@@ -877,7 +884,7 @@ function resultsWorkbook() {
     "Draft Tier", "Draft Rationale", "Screener", "Confirmed Decision",
     "Confirmed Reason Code", "Confirmed Tier", "Notes"];
   const tracker = [TRACKER_HEADERS, ...latest.map(l => {
-    const r = S.corpus.records[l.row_id - 833] || {};
+    const r = byId().get(l.row_id) || {};
     const ladder = l.ladder
       ? " [ladder " + l.ladder.map(x => x.code + (x.applies ? ":YES" : ":no")).join(" ") + "]"
       : "";

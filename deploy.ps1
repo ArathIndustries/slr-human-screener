@@ -13,13 +13,15 @@ $dst = $PSScriptRoot
 
 $manifest = Get-ChildItem "$src\rules_manifest_*.json" |
             Sort-Object LastWriteTime | Select-Object -Last 1
+$corpus   = Get-ChildItem "$src\corpus_*.json" |
+            Sort-Object LastWriteTime | Select-Object -Last 1
 if (-not $manifest) { throw "no rules_manifest_*.json found in $src" }
+if (-not $corpus)   { throw "no corpus_*.json found in $src" }
 if (-not (Test-Path "$src\human_screener.html")) { throw "human_screener.html missing in $src" }
-if (-not (Test-Path "$src\corpus_833-1664.json")) { throw "corpus_833-1664.json missing in $src" }
 
-Copy-Item "$src\human_screener.html"  "$dst\index.html" -Force
-Copy-Item $manifest.FullName          "$dst\rules_manifest_current.json" -Force
-Copy-Item "$src\corpus_833-1664.json" "$dst\corpus_current.json" -Force
+Copy-Item "$src\human_screener.html" "$dst\index.html" -Force
+Copy-Item $manifest.FullName         "$dst\rules_manifest_current.json" -Force
+Copy-Item $corpus.FullName           "$dst\corpus_current.json" -Force
 
 Set-Location $dst
 git add -A
