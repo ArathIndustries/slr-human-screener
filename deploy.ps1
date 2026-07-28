@@ -22,6 +22,9 @@ if (-not (Test-Path "$src\human_screener.html")) { throw "human_screener.html mi
 Copy-Item "$src\human_screener.html" "$dst\index.html" -Force
 Copy-Item $manifest.FullName         "$dst\rules_manifest_current.json" -Force
 Copy-Item $corpus.FullName           "$dst\corpus_current.json" -Force
+if (Test-Path "$src\batches.json") {
+    Copy-Item "$src\batches.json" "$dst\batches.json" -Force
+}
 
 Set-Location $dst
 git add -A

@@ -319,7 +319,10 @@ async function applyUrlParams() {
       const r = await fetch("batches.json");
       if (r.ok) {
         const b = (await r.json())[batch];
-        if (b) { spec = b.rows; S.batchName = batch; }
+        if (b) {
+          spec = b.rows; S.batchName = batch;
+          if (b.screener && !q.get("screener")) $("screener").value = b.screener;
+        }
         else alert(`batch "${batch}" not found in batches.json — using default row filter`);
       }
     } catch (e) { /* not hosted */ }
@@ -360,6 +363,8 @@ $("startbtn").addEventListener("click", () => {
   if (f === "assigned") {
     const valid = new Set(S.corpus.records.map(r => r.id));
     S.queue = (S.assigned || []).filter(id => valid.has(id));
+    const dropped = (S.assigned || []).length - S.queue.length;
+    if (dropped) alert(`${dropped} of your ${S.assigned.length} assigned rows are not in the current database (their records have not been added yet) and were skipped. Your queue has ${S.queue.length} rows.`);
   } else {
     S.queue = S.corpus.records
       .filter(r => f === "all" ? true : f === "open" ? !r.confirmed : r.confirmed)
