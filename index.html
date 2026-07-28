@@ -73,6 +73,19 @@
         color: var(--muted); }
   .hidden { display: none !important; }
   a { color: var(--accent); }
+  .hint { font-size: .88rem; color: var(--muted);
+          border-left: 3px solid var(--accent); padding: .25rem .6rem;
+          margin: .5rem 0; }
+  details.guide { margin: .4rem 0 .6rem; font-size: .85rem;
+                  color: var(--muted); }
+  details.guide summary { cursor: pointer; color: var(--accent); }
+  details.guide ul { margin: .4rem 0 .2rem 1.1rem; padding: 0; }
+  details.guide li { margin: .3rem 0; }
+  #guideoverlay { position: fixed; inset: 0; background: rgba(0,0,0,.55);
+                  z-index: 50; overflow-y: auto; padding: 2rem 1rem; }
+  .overlay-panel { max-width: 760px; margin: 0 auto; background: var(--panel);
+                   border: 1px solid var(--line); border-radius: 8px;
+                   padding: 1rem 1.4rem 1.4rem; }
 </style>
 </head>
 <body>
@@ -126,6 +139,7 @@
 
     <div class="row">
       <button class="primary big" id="startbtn" disabled>Start screening</button>
+      <button id="guidebtn2">Read the screening guide first</button>
       <span class="muted" id="startwhy">load both files and enter a name</span>
     </div>
   </section>
@@ -145,6 +159,7 @@
         <span class="progress" id="progress"></span>
         <input type="text" id="jump" class="mono" placeholder="go to ID"
                style="width:90px">
+        <button id="guidebtn" title="how to decide and what to write">Guide</button>
         <button class="primary" id="exportxlsx"
                 title="download your decisions as a normal Excel workbook">Export results</button>
         <button id="exportbtn" title="raw machine format (.jsonl)">.jsonl</button>
@@ -163,6 +178,16 @@
       <kbd>Esc</kbd> restart row · <kbd>←</kbd><kbd>→</kbd> navigate</p>
   </section>
 </main>
+
+<div id="guideoverlay" class="hidden">
+  <div class="overlay-panel">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="margin:.2rem 0">Screening guide</h2>
+      <button id="guideclose">Close</button>
+    </div>
+    <div id="guidebody"></div>
+  </div>
+</div>
 
 <script>
 "use strict";
@@ -385,6 +410,95 @@ function choiceBtn(key, label, sub, cls) {
     <span class="muted">${esc(sub || "")}</span></button>`;
 }
 
+/* ------------------------------------------------------- guidance layer -- */
+function patternsFor(code) {
+  const items = (S.manifest.rules || [])
+    .filter(r => r.reason_code === code)
+    .map(r => `<li>${esc(r.description)}</li>`).join("");
+  return items
+    ? `<details class="guide"><summary>Patterns the rulebook files under ${esc(code)}</summary><ul>${items}</ul></details>`
+    : "";
+}
+const TOP_HINT =
+  `The include test has three parts, <b>all required</b>: (1) a manufacturing /
+   material-shaping context, (2) a predictive function the paper itself
+   builds, (3) edge / embedded / on-device inference. Clearly missing any
+   part → <b>Exclude</b> (the ladder finds the right code). A required part
+   the abstract neither confirms nor denies → <b>Pending</b>.`;
+const LADDER_HINT =
+  `Judge only what the abstract <b>states</b>, not what it implies. Clearly
+   applies → <b>Y</b> (you will quote the evidence next). Does not apply — or
+   a later code names the real problem better → <b>N</b>.`;
+const RATIONALE_HINT =
+  `Best practice: copy the <b>exact deciding words</b> from the abstract in
+   quotes, then one short clause on why — like the master workbook Notes.`;
+function rationaleExample(w) {
+  if (w.decision === "Pending")
+    return '"LSTM-based RUL prediction" but deployment unstated — full text must answer: does inference run on-edge?';
+  const ex = {
+    EX1: '"smart cities", "e-healthcare" — application domains outside material shaping',
+    EX2: '"review of enabling technologies" — no digital twin and nothing predictive is built',
+    EX3: '"data is uploaded to a cloud platform for analysis" — ML present, but no edge/embedded deployment',
+    EX4: '"digital twin visualization of the factory" — DT present, no predictive function',
+    EX5: '"we discuss opportunities and challenges" — no empirical result, framework, simulation, or prototype',
+    EX8: '"Proceedings front matter" — a record type, not a study',
+    "EXC-CONCEPT": '"virtual replica of the spindle updated with live sensor data" — DT-equivalent without DT vocabulary',
+  };
+  return ex[w.reason_code] ||
+    'copy the deciding words from the abstract in quotes, then one clause on why';
+}
+function buildGuideBody() {
+  const m = S.manifest;
+  const ladRows = m.codes.exclude_ladder.map(c =>
+    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(m.codes.exclude_codes[c])}</td></tr>`).join("");
+  const incRows = Object.entries(m.codes.include_codes).map(([c, g]) =>
+    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(g)}</td></tr>`).join("");
+  return `
+  <p>You are screening abstracts for a systematic review of
+  <b>edge-intelligent digital twins in smart manufacturing</b>
+  (rulebook ${esc(m.source.criteria_version)}, authority
+  ${esc(m.source.ruleset_authority)}). Decide from the title and abstract
+  alone — you never see the machine's answer, and it never sees yours.</p>
+  <h2>The include test — all three parts required</h2>
+  <ol>
+    <li><b>Manufacturing / material-shaping context</b> — machining, forming,
+      welding, casting, molding. Healthcare, smart cities, logistics,
+      robotics-as-domain, energy, telecom are out of scope.</li>
+    <li><b>A predictive function the paper builds</b> — anomaly detection,
+      RUL, quality prediction, predictive maintenance. Naming prediction as
+      motivation does not count; the paper must build it.</li>
+    <li><b>Edge / embedded / on-device inference</b> — the model runs at or
+      near the machine (MCU, FPGA, embedded board), not only in the cloud.</li>
+  </ol>
+  <h2>Choosing a decision</h2>
+  <p><b>Include</b> — all three parts present, or a documented exception
+  applies.<br><b>Exclude</b> — a criterion clearly fails; walk the ladder and
+  the first code that applies wins.<br><b>Pending</b> — a required part is
+  neither confirmed nor denied by the abstract; the full text must resolve
+  it.</p>
+  <h2>Exclude ladder (fixed order — EX5 is the last resort)</h2>
+  <table class="summary">${ladRows}</table>
+  <h2>Include codes</h2>
+  <p>${esc(m.codes.warning)}</p>
+  <table class="summary">${incRows}</table>
+  <h2>Tiers (Include only)</h2>
+  <p>${esc(m.tiering.notes)}</p>
+  <h2>Writing the rationale</h2>
+  <p>Copy the exact deciding words from the abstract in quotes, then one short
+  clause on why. Real examples from this corpus:</p>
+  <ul>
+    <li>"6G", "healthcare" — healthcare domain, outside material shaping.</li>
+    <li>"transmitted wirelessly to the Firebase Realtime Database" — analysis
+      runs in the cloud; on-device inference confirmed absent.</li>
+  </ul>
+  <p>For Pending, write the question the full text must answer.</p>`;
+}
+function openGuide() {
+  if (!S.manifest) { alert("load the rulebook file first"); return; }
+  $("guidebody").innerHTML = buildGuideBody();
+  $("guideoverlay").classList.remove("hidden");
+}
+
 function renderWizard() {
   const w = S.wiz, m = S.manifest, el = $("wizard");
   const crumb = t => `<div class="stepcrumb">${esc(t)}</div>`;
@@ -408,6 +522,7 @@ function renderWizard() {
 
   else if (w.stage === "top") {
     el.innerHTML = crumb("Step 1 of 3 — overall decision. The rulebook walks Exclude codes in a fixed ladder; Include and Pending have their own paths.") +
+      `<div class="hint">${TOP_HINT}</div>` +
       `<div class="choices">` +
       choiceBtn("Include", "1 · Include", "meets §3.2.1 — manufacturing context, predictive function, edge/embedded inference (or a documented exception)", "decision-inc") +
       choiceBtn("Exclude", "2 · Exclude", "walk the EX ladder — you will pass/fail each code in the locked order", "decision-exc") +
@@ -418,14 +533,21 @@ function renderWizard() {
   else if (w.stage === "inc-variant") {
     const codes = m.codes.include_codes;
     el.innerHTML = crumb("Include — step 2 of 3: which include code?") +
+      `<div class="hint">INC = meets the three-part test directly. EXC-* codes
+        admit a record as a <b>documented exception</b> — they are Include
+        codes, and each needs stated grounds in the rationale.</div>` +
       `<p class="muted">${esc(m.codes.warning)}</p><div class="choices">` +
       Object.keys(codes).map((c, i) =>
         choiceBtn(c, `${i + 1} · ${c}`, codes[c], "decision-inc")).join("") +
-      `</div>`;
+      `</div>` + patternsFor("INC") + patternsFor("EXC-CONCEPT");
   }
 
   else if (w.stage === "inc-tier") {
     el.innerHTML = crumb("Include — step 3 of 3: tier.") +
+      `<div class="hint">Tier 2 needs a <b>named machining process</b>
+        (milling, turning, drilling, grinding…) plus DT (vocabulary or
+        EXC-CONCEPT) plus edge. Forming, welding, casting, molding cap at
+        Tier 1 by rule.</div>` +
       `<p class="muted">${esc(m.tiering.notes)}</p><div class="choices">` +
       choiceBtn("2", "1 · Tier 2", "named MACHINING process AND DT (vocabulary or EXC-CONCEPT) AND edge — the review's core") +
       choiceBtn("1", "2 · Tier 1", "in scope, but broader background — forming/welding/casting/molding cap here") +
@@ -439,6 +561,8 @@ function renderWizard() {
     el.innerHTML = crumb(`Exclude ladder — code ${w.li + 1} of ${m.codes.exclude_ladder.length}. First code that applies wins; later codes are then never asked.`) +
       `<p><span class="laddercode">${esc(code)}</span> — ${esc(gloss)}</p>` +
       (extra ? `<p class="muted">${esc(extra)}</p>` : "") +
+      (w.li === 0 ? `<div class="hint">${LADDER_HINT}</div>` : "") +
+      patternsFor(code) +
       `<div class="choices">
         <button class="choice" data-key="yes"><b class="decision-exc">Y · Applies — exclude as ${esc(code)}</b></button>
         <button class="choice" data-key="no"><b>N · Does not apply — next code</b></button>
@@ -460,6 +584,8 @@ function renderWizard() {
     const need = rationaleRequired(w);
     el.innerHTML = crumb("Rationale" + (need ? " (required)" : " (optional)")) +
       `<p class="muted">${esc(rationalePrompt(w))}</p>
+      <div class="hint">${RATIONALE_HINT}<br>
+        <span class="muted">Example: ${esc(rationaleExample(w))}</span></div>
       <textarea id="rationale"></textarea>
       <div class="row" style="margin-top:.6rem">
         <button class="primary" id="rat-next">Continue</button>
@@ -745,6 +871,11 @@ function resultsWorkbook() {
                    { name: "Screening Detail", rows: detail },
                    { name: "machine_data", rows: machine }]);
 }
+
+$("guidebtn").addEventListener("click", openGuide);
+$("guidebtn2").addEventListener("click", openGuide);
+$("guideclose").addEventListener("click", () =>
+  $("guideoverlay").classList.add("hidden"));
 
 $("exportxlsx").addEventListener("click", () => {
   if (!S.done.size) { alert("nothing to export yet"); return; }
