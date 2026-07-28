@@ -700,26 +700,49 @@ function makeXlsx(sheets) {
   ]);
 }
 function resultsWorkbook() {
-  const header = ["Row ID", "Title", "Decision", "Code", "Tier",
-                  "Exclude ladder walk", "Rationale", "Re-screen", "Screener",
-                  "Purpose", "Batch", "Decided at", "Seconds on row",
-                  "Rulebook version"];
   const latest = [...S.done.values()].sort((a, b) => a.row_id - b.row_id);
-  const rows = [header, ...latest.map(l => [
-    String(l.row_id),
-    (S.corpus.records[l.row_id - 833] || {}).title || "",
-    l.decision, l.reason_code || (l.decision === "Pending" ? "Pending" : ""),
+
+  // Sheet 1 — the team's master-workbook layout, column for column. Human
+  // output fills the Confirmed columns; Draft columns are the engine's and
+  // stay blank here (this tool is blind to them).
+  const TRACKER_HEADERS = ["ID", "Title", "Abstract", "Authors", "Year",
+    "Source DB", "Calibration Sample", "Draft Decision", "Draft Reason",
+    "Draft Tier", "Draft Rationale", "Screener", "Confirmed Decision",
+    "Confirmed Reason Code", "Confirmed Tier", "Notes"];
+  const tracker = [TRACKER_HEADERS, ...latest.map(l => {
+    const r = S.corpus.records[l.row_id - 833] || {};
+    const ladder = l.ladder
+      ? " [ladder " + l.ladder.map(x => x.code + (x.applies ? ":YES" : ":no")).join(" ") + "]"
+      : "";
+    return [String(l.row_id), r.title || "", r.abstract || "", r.authors || "",
+            r.year || "", r.source_db || "", "", "", "", "", "",
+            l.screener, l.decision, l.reason_code || "",
+            l.decision === "Include" ? (l.tier || "") : (l.decision === "Exclude" ? "N/A" : ""),
+            (l.rationale || "") + ladder];
+  })];
+
+  // Sheet 2 — per-session detail that has no home in the tracker layout.
+  const detailHeader = ["Row ID", "Decision", "Code", "Tier",
+    "Exclude ladder walk", "Rationale", "Re-screen", "Screener", "Purpose",
+    "Batch", "Decided at", "Seconds on row", "Rulebook version"];
+  const detail = [detailHeader, ...latest.map(l => [
+    String(l.row_id), l.decision,
+    l.reason_code || (l.decision === "Pending" ? "Pending" : ""),
     l.tier || "",
     l.ladder ? l.ladder.map(x => `${x.code}:${x.applies ? "YES" : "no"}`).join("  ") : "",
     l.rationale || "", l.revises ? "yes" : "", l.screener, l.disposition,
     l.batch || "", l.decided_at, String(l.duration_s), l.criteria_version,
   ])];
+
+  // Sheet 3 — the exact journal, for the scoring script.
   const machine = [
     ["machine_data — exact decision journal, one JSON object per row below. The scoring script reads this sheet; do not edit it."],
     [JSON.stringify(sessionHead())],
     ...S.trace.map(l => [JSON.stringify(l)]),
   ];
-  return makeXlsx([{ name: "Decisions", rows },
+
+  return makeXlsx([{ name: "Screening Tracker", rows: tracker },
+                   { name: "Screening Detail", rows: detail },
                    { name: "machine_data", rows: machine }]);
 }
 
