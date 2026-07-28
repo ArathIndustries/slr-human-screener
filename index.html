@@ -411,13 +411,49 @@ function choiceBtn(key, label, sub, cls) {
 }
 
 /* ------------------------------------------------------- guidance layer -- */
-function patternsFor(code) {
-  const items = (S.manifest.rules || [])
-    .filter(r => r.reason_code === code)
-    .map(r => `<li>${esc(r.description)}</li>`).join("");
-  return items
-    ? `<details class="guide"><summary>Patterns the rulebook files under ${esc(code)}</summary><ul>${items}</ul></details>`
-    : "";
+/* Human-facing wording. The manifest keeps the engine's exact language; the
+   text below rewrites it in full sentences for screeners, with internal rule
+   ids and spec references removed. Review whenever the rulebook version
+   changes. */
+const HUMAN_CODES = {
+  EX7: { desc: "This exact record already appears elsewhere in the master list.",
+    how: ["Duplicates were removed before this list was built, so this should almost never apply — answer No unless you are certain you have seen the identical record."] },
+  EX6: { desc: "The record is not written in English.",
+    how: ["The corpus is English-indexed, so this is rare."] },
+  EX8: { desc: "The record is not a peer-reviewed research paper at all.",
+    how: ["Patents, datasets, book chapters, editorials, prefaces and proceedings front-matter, newsletters, and non-peer-reviewed theses all land here.",
+      "The title alone often settles it (“Editorial”, “Proceedings of …”)."] },
+  EX1: { desc: "The application domain is outside manufacturing and material shaping — the paper is about somewhere else, even if it name-drops industry.",
+    how: ["Out-of-scope domains include healthcare, smart cities, agriculture, energy and power, telecom/5G/6G, logistics and supply chains, construction, UAVs, autonomous vehicles, AR/VR.",
+      "A domain word in the title, or a paper that discusses that domain more than manufacturing, is a strong sign.",
+      "Also here: papers whose deliverable is a gateway, broker, middleware, or data-collection platform — infrastructure that moves data, with the predictive application named only as motivation.",
+      "Also here: robot motion control, manipulation, or pick-and-place as the subject, rather than a material-shaping process.",
+      "Also here: no manufacturing or industrial context named at all."] },
+  EX2: { desc: "The paper has neither a digital twin (nor an equivalent virtual-replica concept) nor any predictive function.",
+    how: ["If either one is present — a digital twin or something predictive — this code does not apply; answer No and keep going."] },
+  EX4: { desc: "A digital twin is present, but nothing predictive or data-driven is built on it — it only models, monitors, or visualizes.",
+    how: [] },
+  EX3: { desc: "Machine learning or a predictive function is present, but it runs only in the cloud or on ordinary servers — no edge, embedded, or on-device deployment.",
+    how: ["Watch for: device hardware named for sensing while the abstract says the data is sent to a cloud platform for storage and analysis — that is cloud analytics, not edge intelligence."] },
+  EX5: { desc: "The record shows too little methodological substance to evaluate — most commonly because it is a survey, review, or tutorial, which by nature presents no empirical results, computational framework, simulation, or hardware prototype.",
+    how: ["This is deliberately the last question — reach it only after every other code has been ruled out.",
+      "“A Review of …” titles, or opening lines that promise an overview of prior work, are the typical signs."] },
+};
+const HUMAN_INCLUDE = {
+  "INC": "Meets the criteria directly: manufacturing context, a predictive function the paper builds, and edge/embedded inference.",
+  "EXC-ARXIV": "Right on the criteria, but published as an arXiv preprint — admitted as a documented exception; state why it merits admission.",
+  "EXC-THESIS": "Right on the criteria, but a thesis — admitted as a documented exception; state why it merits admission.",
+  "EXC-DOMAIN": "Formally outside the domain, but the physics plausibly transfers to a manufacturing asset (e.g. rotating machinery whose vibration signal maps onto a spindle). A judgment call — state the grounds.",
+  "EXC-CONCEPT": "The authors never say “digital twin”, but what they build is one — a virtual replica of a physical asset kept in sync with sensor data, plus prediction and edge. State the DT-equivalent elements.",
+};
+function ladderGloss(code) {
+  return (HUMAN_CODES[code] || {}).desc || S.manifest.codes.exclude_codes[code];
+}
+function recognizeBox(code) {
+  const h = HUMAN_CODES[code];
+  if (!h || !h.how.length) return "";
+  return `<details class="guide"><summary>How to recognize ${esc(code)}</summary><ul>` +
+    h.how.map(x => `<li>${esc(x)}</li>`).join("") + `</ul></details>`;
 }
 const TOP_HINT =
   `The include test has three parts, <b>all required</b>: (1) a manufacturing /
@@ -450,15 +486,15 @@ function rationaleExample(w) {
 function buildGuideBody() {
   const m = S.manifest;
   const ladRows = m.codes.exclude_ladder.map(c =>
-    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(m.codes.exclude_codes[c])}</td></tr>`).join("");
+    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(ladderGloss(c))}</td></tr>`).join("");
   const incRows = Object.entries(m.codes.include_codes).map(([c, g]) =>
-    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(g)}</td></tr>`).join("");
+    `<tr><td class="mono"><b>${esc(c)}</b></td><td>${esc(HUMAN_INCLUDE[c] || g)}</td></tr>`).join("");
   return `
   <p>You are screening abstracts for a systematic review of
   <b>edge-intelligent digital twins in smart manufacturing</b>
-  (rulebook ${esc(m.source.criteria_version)}, authority
-  ${esc(m.source.ruleset_authority)}). Decide from the title and abstract
-  alone — you never see the machine's answer, and it never sees yours.</p>
+  (rulebook version ${esc(m.source.criteria_version)}; criteria locked by the
+  review lead on 2026-07-20). Decide from the title and abstract alone — you
+  never see the machine's answer, and it never sees yours.</p>
   <h2>The include test — all three parts required</h2>
   <ol>
     <li><b>Manufacturing / material-shaping context</b> — machining, forming,
@@ -479,10 +515,16 @@ function buildGuideBody() {
   <h2>Exclude ladder (fixed order — EX5 is the last resort)</h2>
   <table class="summary">${ladRows}</table>
   <h2>Include codes</h2>
-  <p>${esc(m.codes.warning)}</p>
+  <p>All of these mean <b>Include</b>. The EXC- codes admit a record as a
+  documented exception; despite the look of the prefix, they are not
+  exclusions.</p>
   <table class="summary">${incRows}</table>
   <h2>Tiers (Include only)</h2>
-  <p>${esc(m.tiering.notes)}</p>
+  <p>Tier 2 marks the review's core: a named machining process (milling,
+  turning, drilling, grinding…) together with a digital twin — by vocabulary
+  or as EXC-CONCEPT — and edge deployment. Everything else in scope is
+  Tier 1, including forming, welding, casting, and molding papers, which stay
+  Tier 1 by rule regardless of strength.</p>
   <h2>Writing the rationale</h2>
   <p>Copy the exact deciding words from the abstract in quotes, then one short
   clause on why. Real examples from this corpus:</p>
@@ -533,22 +575,24 @@ function renderWizard() {
   else if (w.stage === "inc-variant") {
     const codes = m.codes.include_codes;
     el.innerHTML = crumb("Include — step 2 of 3: which include code?") +
-      `<div class="hint">INC = meets the three-part test directly. EXC-* codes
-        admit a record as a <b>documented exception</b> — they are Include
-        codes, and each needs stated grounds in the rationale.</div>` +
-      `<p class="muted">${esc(m.codes.warning)}</p><div class="choices">` +
+      `<div class="hint">INC = meets the three-part test directly. The EXC-
+        codes also mean <b>Include</b> — they admit a record as a documented
+        exception, and each needs its grounds stated in the rationale.</div>` +
+      `<div class="choices">` +
       Object.keys(codes).map((c, i) =>
-        choiceBtn(c, `${i + 1} · ${c}`, codes[c], "decision-inc")).join("") +
-      `</div>` + patternsFor("INC") + patternsFor("EXC-CONCEPT");
+        choiceBtn(c, `${i + 1} · ${c}`, HUMAN_INCLUDE[c] || codes[c], "decision-inc")).join("") +
+      `</div>`;
   }
 
   else if (w.stage === "inc-tier") {
     el.innerHTML = crumb("Include — step 3 of 3: tier.") +
-      `<div class="hint">Tier 2 needs a <b>named machining process</b>
-        (milling, turning, drilling, grinding…) plus DT (vocabulary or
-        EXC-CONCEPT) plus edge. Forming, welding, casting, molding cap at
-        Tier 1 by rule.</div>` +
-      `<p class="muted">${esc(m.tiering.notes)}</p><div class="choices">` +
+      `<div class="hint">Tier 2 marks the review's core: a <b>named machining
+        process</b> (milling, turning, drilling, grinding…) together with a
+        digital twin (by vocabulary, or as EXC-CONCEPT) and edge deployment.
+        Everything else in scope is Tier 1 — including forming, welding,
+        casting, and molding papers, which stay Tier 1 by rule regardless of
+        strength.</div>` +
+      `<div class="choices">` +
       choiceBtn("2", "1 · Tier 2", "named MACHINING process AND DT (vocabulary or EXC-CONCEPT) AND edge — the review's core") +
       choiceBtn("1", "2 · Tier 1", "in scope, but broader background — forming/welding/casting/molding cap here") +
       `</div>`;
@@ -556,13 +600,10 @@ function renderWizard() {
 
   else if (w.stage === "ladder") {
     const code = m.codes.exclude_ladder[w.li];
-    const gloss = m.codes.exclude_codes[code];
-    const extra = m.engine_cannot_emit[code];
-    el.innerHTML = crumb(`Exclude ladder — code ${w.li + 1} of ${m.codes.exclude_ladder.length}. First code that applies wins; later codes are then never asked.`) +
-      `<p><span class="laddercode">${esc(code)}</span> — ${esc(gloss)}</p>` +
-      (extra ? `<p class="muted">${esc(extra)}</p>` : "") +
+    el.innerHTML = crumb(`Exclude ladder — question ${w.li + 1} of ${m.codes.exclude_ladder.length}. The first code that applies wins; later ones are then never asked.`) +
+      `<p><span class="laddercode">${esc(code)}</span> — ${esc(ladderGloss(code))}</p>` +
       (w.li === 0 ? `<div class="hint">${LADDER_HINT}</div>` : "") +
-      patternsFor(code) +
+      recognizeBox(code) +
       `<div class="choices">
         <button class="choice" data-key="yes"><b class="decision-exc">Y · Applies — exclude as ${esc(code)}</b></button>
         <button class="choice" data-key="no"><b>N · Does not apply — next code</b></button>
