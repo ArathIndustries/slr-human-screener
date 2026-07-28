@@ -1,0 +1,1055 @@
+{
+  "manifest_format": "1.0",
+  "generated_at": "2026-07-26T12:54:23",
+  "generator": "export_rules_manifest.py",
+  "source": {
+    "file": "slr_screener.py",
+    "sha256_full": "e9d5baae528fd9e99f102f3a0d26e49d6baede9078655e5a96055672188ca63c",
+    "criteria_version": "2026-07-24.2",
+    "ruleset_authority": "Shendokar-LOCKED-2026-07-20",
+    "lexicon_fingerprint": "88415c46c7f1e817",
+    "fingerprint_note": "sha256(json.dumps(sorted lexicon))[:16] — same algorithm and value as the engine's Run Info sheet"
+  },
+  "verification": {
+    "predicate_equivalence": "PASS",
+    "predicate_combinations_tested": 3118,
+    "tier_combinations_tested": 24,
+    "configs_tested": 2,
+    "method": "every hand-written predicate AST evaluated against the live engine lambda over the full cartesian product of its declared inputs (counts 0-4, bools both ways), under default and perturbed settings; undeclared signal reads trap; export aborts on any mismatch",
+    "lexicon_compile_failures": []
+  },
+  "settings": {
+    "domain_min_count": 2,
+    "min_abstract_words": 25,
+    "recall_queue_size": 60,
+    "predictive_min_count": 1,
+    "infer_hw_min_count": 2,
+    "survey_front_chars": 250,
+    "connectivity_min_count": 2,
+    "robotics_min_count": 2
+  },
+  "matching_conventions": {
+    "pattern_compile": "each lexicon fragment f compiled as \\b{f}\\b, case-insensitive; fragments are regex, not literals",
+    "bad_pattern_policy": "a fragment that fails to compile is skipped silently by the engine (reported in its GUI log)",
+    "match_surface": "SIG / SIG_COUNT match over title + '\\n' + abstract; SIG_IN_TITLE over the title alone",
+    "survey_windowing": "SURVEY matches over title + first survey_front_chars chars of the abstract; SURVEY_ABS over that abstract head only; SURVEY_FRONT = (windowed SURVEY count + SURVEY_ABS count) > 0. SURVEY_IN_TITLE keeps its full-text value"
+  },
+  "signals": {
+    "lexicon": {
+      "DT": {
+        "patterns": [
+          "digital twin(s)?",
+          "digital shadow(s)?",
+          "cyber[- ]physical twin",
+          "virtual (replica|counterpart|commissioning)",
+          "as[- ]built virtual model",
+          "twin[- ]based"
+        ],
+        "pattern_count": 6,
+        "meaning": "Digital Twin named"
+      },
+      "PREDICTIVE": {
+        "patterns": [
+          "predictive maintenance",
+          "prognostic(s)?",
+          "remaining useful life",
+          "\\brul\\b",
+          "condition monitoring",
+          "anomaly detection",
+          "fault (diagnos|detect|predict)\\w*",
+          "failure (predict|prognos)\\w*",
+          "defect (detect|predict|classif)\\w*",
+          "quality (predict|forecast)\\w*",
+          "tool wear",
+          "chatter (detect|predict|identif)\\w*",
+          "degradation (model|predict)\\w*",
+          "process monitoring",
+          "forecast(ing)?",
+          "abnormalit(y|ies)",
+          "outlier detection",
+          "deviation detection",
+          "statistical process control",
+          "control chart(s)?",
+          "thermal (error|drift)",
+          "predictive (analytic|capabilit)\\w*",
+          "defect recogni\\w*",
+          "failure warning",
+          "predictive diagnostic(s)?",
+          "visual inspection",
+          "quality inspection",
+          "defect inspection",
+          "surface inspection",
+          "(automated|automatic) (optical |visual )?inspection"
+        ],
+        "pattern_count": 30,
+        "meaning": "a predictive function"
+      },
+      "ML": {
+        "patterns": [
+          "machine learning",
+          "deep learning",
+          "neural network(s)?",
+          "\\bcnn\\b",
+          "\\blstm\\b",
+          "\\bgru\\b",
+          "\\brnn\\b",
+          "\\bgan\\b",
+          "transformer(s)? (model|architecture|network)",
+          "random forest",
+          "support vector",
+          "\\bsvm\\b",
+          "gradient boost\\w*",
+          "xgboost",
+          "reinforcement learning",
+          "data[- ]driven model",
+          "\\bai\\b",
+          "artificial intelligence"
+        ],
+        "pattern_count": 18,
+        "meaning": "machine learning"
+      },
+      "EDGE": {
+        "patterns": [
+          "edge (comput|ai|intelligen|device|node|layer|infer)\\w*",
+          "fog comput\\w*",
+          "tinyml",
+          "tiny ml",
+          "embedded (system|device|inference|platform|hardware|ml)\\w*",
+          "microcontroller(s)?",
+          "\\bmcu\\b",
+          "\\bmpu\\b",
+          "\\bfpga\\b",
+          "system[- ]on[- ](a[- ])?chip",
+          "\\bmpsoc\\b",
+          "(?<!state[- ]of[- ]charge \\()(?<!state[- ]of[- ]charge\\()(?<!state[- ]of[- ]charge )soc",
+          "raspberry pi",
+          "jetson",
+          "arduino",
+          "on[- ]device (inference|learning|training)",
+          "resource[- ]constrained",
+          "low[- ]power (inference|ai|ml)",
+          "model (quantization|compression|pruning)",
+          "real[- ]time inference",
+          "latency[- ](aware|critical|sensitive)",
+          "near[- ]sensor",
+          "edge[- ]based",
+          "cloud[- ]edge",
+          "edge[- ]cloud",
+          "greengrass",
+          "edge learning",
+          "edge[- ]plc(s)?"
+        ],
+        "pattern_count": 28,
+        "meaning": "edge/embedded deployment"
+      },
+      "MACHINING": {
+        "patterns": [
+          "\\bcnc\\b",
+          "milling",
+          "\\bmill(ed|ing)?\\b",
+          "turning",
+          "\\blathe\\b",
+          "drilling",
+          "\\bdrill(ed|ing)?\\b",
+          "grinding",
+          "boring",
+          "reaming",
+          "broaching",
+          "machining",
+          "machine tool(s)?",
+          "cutting (tool|force|parameter|speed|condition)\\w*",
+          "subtractive manufactur\\w*",
+          "surface roughness",
+          "spindle",
+          "tool (wear|breakage|condition monitoring)",
+          "chatter"
+        ],
+        "pattern_count": 19,
+        "meaning": "a NAMED machining process"
+      },
+      "FORMING_WELDING": {
+        "patterns": [
+          "forming",
+          "stamping",
+          "forging",
+          "extrusion",
+          "rolling mill",
+          "sheet metal",
+          "deep draw\\w*",
+          "bending process",
+          "weld(ing|ed)?",
+          "\\bgmaw\\b",
+          "\\bgtaw\\b",
+          "laser weld\\w*",
+          "(?<!fore-)(?<!broad-)casting",
+          "injection mold\\w*",
+          "molding process",
+          "laser cutting",
+          "electrical discharge machining",
+          "\\bedm\\b"
+        ],
+        "pattern_count": 18,
+        "meaning": "forming/welding"
+      },
+      "DOMAIN_EXCL": {
+        "patterns": [
+          "healthcare",
+          "medical",
+          "patient",
+          "clinical",
+          "biomedical",
+          "smart cit(y|ies)",
+          "urban",
+          "agricultur\\w*",
+          "farming",
+          "crop",
+          "livestock",
+          "\\buav\\b",
+          "drone(s)?",
+          "unmanned aerial",
+          "metaverse",
+          "\\bxr\\b",
+          "augmented reality",
+          "virtual reality",
+          "supply chain",
+          "logistic(s)?",
+          "warehous\\w*",
+          "inventory",
+          "(production|job[- ]shop|flow[- ]shop) (planning|scheduling)",
+          "\\bscheduling\\b",
+          "dispatching rule",
+          "operations research",
+          "queueing",
+          "work study",
+          "ergonomic(s)?",
+          "human factors",
+          "collision avoidance",
+          "robot (safety|navigation|path planning)",
+          "autonomous (vehicle|driving)",
+          "power grid",
+          "smart grid",
+          "wind turbine",
+          "photovoltaic",
+          "oil and gas",
+          "pipeline",
+          "(coal|ore|mineral|underground|open[- ]pit|opencast|quarry)[- ]?mining",
+          "mining (industry|industries|machinery|equipment|site|sector|truck)\\w*",
+          "\\bmine (site|shaft|hoist)\\w*",
+          "building information model\\w*",
+          "\\bbim\\b",
+          "construction site",
+          "\\b5g\\b",
+          "\\b6g\\b",
+          "telecom\\w*",
+          "network (management|operations?|slicing|function virtuali\\w*)",
+          "network digital twin(s)?",
+          "zero[- ]touch network\\w*",
+          "beverage(s)?",
+          "brewer(y|ies)|brewing",
+          "bottling",
+          "tobacco",
+          "cigarette(s)?",
+          "food (processing|industry|production)"
+        ],
+        "pattern_count": 57,
+        "meaning": "an out-of-scope domain"
+      },
+      "ASSET_TRANSFER": {
+        "patterns": [
+          "aero[- ]?engine(s)?",
+          "turbofan",
+          "gas turbine",
+          "jet engine",
+          "induction motor",
+          "electric(al)? machine\\w*",
+          "\\bstator\\b",
+          "\\brotor\\b",
+          "\\bbearing(s)?\\b",
+          "gearbox(es)?",
+          "\\bspindle\\b",
+          "\\bcompressor(s)?\\b",
+          "powertrain",
+          "motor current",
+          "\\bmcsa\\b",
+          "rotating machine\\w*",
+          "electric vehicle(s)?"
+        ],
+        "pattern_count": 17,
+        "meaning": ""
+      },
+      "CLOUD_SINK": {
+        "patterns": [
+          "firebase",
+          "realtime database",
+          "thingspeak",
+          "\\bblynk\\b",
+          "cloud (database|server|storage|dashboard)",
+          "(sent|uploaded|transmitted)( wirelessly)? to (the )?(cloud|firebase)"
+        ],
+        "pattern_count": 6,
+        "meaning": "stated cloud data sink"
+      },
+      "INFER_HW": {
+        "patterns": [
+          "\\bfpga(s)?\\b",
+          "\\bice40\\b",
+          "\\bzynq\\b",
+          "xilinx",
+          "altera",
+          "lattice (ice|semiconductor)\\w*",
+          "\\basic(s)?\\b",
+          "application[- ]specific integrated circuit(s)?",
+          "\\bcmos\\b",
+          "\\d+[- ]?nm (cmos|process|technology|node)",
+          "integrated circuit(s)?",
+          "\\bvlsi\\b",
+          "tape[- ]?out",
+          "msp430",
+          "stm32",
+          "cortex[- ]m\\d*",
+          "esp32",
+          "esp8266",
+          "atmega",
+          "nrf52",
+          "kendryte",
+          "\\bk210\\b",
+          "(hardware|neural|network|inference|ai|dnn|cnn|rnn|lstm|ml|deep learning) accelerat\\w*",
+          "accelerator (architecture|design|chip|core)",
+          "\\bnpu\\b",
+          "\\btpu\\b",
+          "systolic array",
+          "(model|weight|activation|network|post[- ]training|\\d+[- ]bit|int8) quantiz\\w*",
+          "quantization[- ]aware",
+          "model compression"
+        ],
+        "pattern_count": 30,
+        "meaning": "inference hardware as subject"
+      },
+      "SURVEY": {
+        "patterns": [
+          "th(is|e) (survey|review|overview|tutorial)",
+          "this (paper|article|study|work|chapter) (reviews|surveys)",
+          "this (paper|article|study|work|chapter) (presents|provides|offers|gives|is|constitutes) ?(a|an)? ?(comprehensive |systematic |critical |brief |short |detailed |extensive |state[- ]of[- ]the[- ]art |structured |thorough )*(survey|review|overview)",
+          "we (review|survey)",
+          "(survey|review) (paper|article)",
+          "literature review",
+          "systematic review",
+          "scoping review",
+          "state[- ]of[- ]the[- ]art review",
+          "(review|survey) is (presented|provided)",
+          "tutorial"
+        ],
+        "pattern_count": 11,
+        "meaning": "declares itself a review"
+      },
+      "SURVEY_ABS": {
+        "patterns": [
+          "((a|an|the) )?(comprehensive |systematic |critical |brief |short |detailed |extensive |state[- ]of[- ]the[- ]art |structured |thorough |bibliometric |scientometric |comparative )*(review|survey) (of|on)"
+        ],
+        "pattern_count": 1,
+        "meaning": "'a review/survey of' (abstract)"
+      },
+      "CONNECTIVITY": {
+        "patterns": [
+          "data concentrator",
+          "gateway (functionalit|node|device|layer|architectur)\\w*",
+          "\\bopc[- ]ua\\b",
+          "\\bopcua\\b",
+          "middleware",
+          "serverless",
+          "interoperabilit\\w* (framework|layer|architectur)\\w*",
+          "ieee 1451",
+          "data (acquisition|collection) (system|platform|framework|architectur)\\w*",
+          "protocol (conversion|translation)",
+          "\\bmqtt\\b broker"
+        ],
+        "pattern_count": 11,
+        "meaning": "gateway / data-movement platform"
+      },
+      "ROBOTICS": {
+        "patterns": [
+          "robot(s|ic|ics|ized)?\\b",
+          "\\bcobot(s)?\\b",
+          "robotic arm",
+          "manipulator(s)?",
+          "end[- ]effector(s)?",
+          "pick[- ]and[- ]place"
+        ],
+        "pattern_count": 6,
+        "meaning": "robotics as the application"
+      },
+      "MANUF": {
+        "patterns": [
+          "manufactur\\w*",
+          "factory",
+          "factories",
+          "shop[- ]floor",
+          "production line",
+          "industry 4\\.0",
+          "industry 5\\.0",
+          "industrial",
+          "assembly line",
+          "workpiece",
+          "machine shop"
+        ],
+        "pattern_count": 11,
+        "meaning": "manufacturing context"
+      },
+      "BAD_RECORD": {
+        "patterns": [
+          "patent application",
+          "patent (no\\.?|number)",
+          "\\bus ?patent\\b",
+          "this patent (disclos|claim|describ|relat)\\w*",
+          "the present invention",
+          "this invention (relates|discloses|provides)",
+          "this (book|chapter) ",
+          "book chapter",
+          "editorial",
+          "proceedings front matter",
+          "table of contents",
+          "conference (program|committee)",
+          "this dataset (is|contains|provides)",
+          "data (descriptor|set) (paper|record)",
+          "introduction to the special (issue|section|edition)",
+          "guest editor(ial|s)?",
+          "siglog monthly"
+        ],
+        "pattern_count": 17,
+        "meaning": "unusable record type"
+      }
+    },
+    "derived": {
+      "MATERIAL_TRANSFORM": "MACHINING or FORMING_WELDING (boolean)",
+      "SURVEY_FRONT": "windowed survey evidence present — see matching_conventions.survey_windowing"
+    },
+    "core_signal_display_order": [
+      "DT",
+      "PREDICTIVE",
+      "ML",
+      "EDGE",
+      "MACHINING",
+      "DOMAIN_EXCL",
+      "MANUF",
+      "INFER_HW",
+      "SURVEY",
+      "SURVEY_ABS",
+      "CONNECTIVITY",
+      "ROBOTICS",
+      "CLOUD_SINK"
+    ]
+  },
+  "decision_procedure": {
+    "stages": [
+      "1. compute signals from title + abstract",
+      "2. walk rules in eval_index order; first true predicate fires and sets decision / reason_code / rule_id",
+      "3. tier: assign via tiering.tier_2_condition if Include, else 'N/A'",
+      "4. tier cap: if fired rule is in tier1_capped_rules and decision is Include, force tier '1'",
+      "5. thin-abstract override (post_rules.R0-thin) — may overwrite everything above"
+    ],
+    "ordering_warning": "eval_index is authoritative; rule_id names do NOT sort into evaluation order (R2a-survey runs 13th by design — EX5 is last resort)"
+  },
+  "rules": [
+    {
+      "eval_index": 1,
+      "rule_id": "R1-record",
+      "decision": "Exclude",
+      "reason_code": "EX8",
+      "description": "Patent / book / dataset / editorial / front-matter record.",
+      "predicate": {
+        "signal": "BAD_RECORD"
+      },
+      "signals_read": [
+        "BAD_RECORD"
+      ],
+      "params_used": [],
+      "catch_all": false
+    },
+    {
+      "eval_index": 2,
+      "rule_id": "R2-domain",
+      "decision": "Exclude",
+      "reason_code": "EX1",
+      "description": "Application domain is out of scope under the material-transformation boundary — domain term in the title, or sustained domain focus outweighing manufacturing context.",
+      "predicate": {
+        "any": [
+          {
+            "in_title": "DOMAIN_EXCL"
+          },
+          {
+            "all": [
+              {
+                "count_gte_param": {
+                  "signal": "DOMAIN_EXCL",
+                  "param": "domain_min_count"
+                }
+              },
+              {
+                "count_gte_count": {
+                  "signal": "DOMAIN_EXCL",
+                  "other": "MANUF"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "signals_read": [
+        "DOMAIN_EXCL_IN_TITLE",
+        "DOMAIN_EXCL_COUNT",
+        "MANUF_COUNT"
+      ],
+      "params_used": [
+        "domain_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 3,
+      "rule_id": "R2b-edge-hardware-include",
+      "decision": "Include",
+      "reason_code": "INC",
+      "description": "Edge/embedded inference hardware is the subject (FPGA, fabricated silicon, MCU-class part, or an inference accelerator) and a predictive function is present. In scope under §3.2.1(3) with no named manufacturing application required. Include, capped at Tier 1.",
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "signal": "MANUF"
+            }
+          },
+          {
+            "not": {
+              "signal": "MATERIAL_TRANSFORM"
+            }
+          },
+          {
+            "any": [
+              {
+                "in_title": "INFER_HW"
+              },
+              {
+                "count_gte_param": {
+                  "signal": "INFER_HW",
+                  "param": "infer_hw_min_count"
+                }
+              }
+            ]
+          },
+          {
+            "any": [
+              {
+                "in_title": "PREDICTIVE"
+              },
+              {
+                "count_gte_param": {
+                  "signal": "PREDICTIVE",
+                  "param": "predictive_min_count"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "signals_read": [
+        "MANUF",
+        "MATERIAL_TRANSFORM",
+        "INFER_HW_IN_TITLE",
+        "INFER_HW_COUNT",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT"
+      ],
+      "params_used": [
+        "infer_hw_min_count",
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 4,
+      "rule_id": "R2c-connectivity",
+      "decision": "Exclude",
+      "reason_code": "EX1",
+      "description": "The deliverable is connectivity or data movement — gateway, concentrator, broker, middleware, or data-acquisition platform — with the predictive application named as motivation rather than built (§3.2.2(1)).",
+      "predicate": {
+        "any": [
+          {
+            "in_title": "CONNECTIVITY"
+          },
+          {
+            "count_gte_param": {
+              "signal": "CONNECTIVITY",
+              "param": "connectivity_min_count"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "CONNECTIVITY_IN_TITLE",
+        "CONNECTIVITY_COUNT"
+      ],
+      "params_used": [
+        "connectivity_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 5,
+      "rule_id": "R2d-robotics",
+      "decision": "Exclude",
+      "reason_code": "EX1",
+      "description": "Robotics is the application domain — robot motion control, manipulation, or pick-and-place — which the Scope Refinement places outside the material-transformation boundary (§3.2.2(1)).",
+      "predicate": {
+        "any": [
+          {
+            "in_title": "ROBOTICS"
+          },
+          {
+            "count_gte_param": {
+              "signal": "ROBOTICS",
+              "param": "robotics_min_count"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "ROBOTICS_IN_TITLE",
+        "ROBOTICS_COUNT"
+      ],
+      "params_used": [
+        "robotics_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 6,
+      "rule_id": "R3a-transfer-pending",
+      "decision": "Pending",
+      "reason_code": "",
+      "description": "Mechanism-transfer candidate (R1): the asset is rotating or thermal-mechanical machinery whose sensed signal may map onto a spindle-motor signal, but no manufacturing context is named and the abstract does not state whether inference runs on-edge. Two questions for full text: does the signal transfer, and does the model run on-edge/embedded?",
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "signal": "MANUF"
+            }
+          },
+          {
+            "not": {
+              "signal": "MATERIAL_TRANSFORM"
+            }
+          },
+          {
+            "not": {
+              "signal": "DOMAIN_EXCL"
+            }
+          },
+          {
+            "signal": "ASSET_TRANSFER"
+          },
+          {
+            "any": [
+              {
+                "signal": "DT"
+              },
+              {
+                "any": [
+                  {
+                    "in_title": "PREDICTIVE"
+                  },
+                  {
+                    "count_gte_param": {
+                      "signal": "PREDICTIVE",
+                      "param": "predictive_min_count"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "not": {
+              "signal": "EDGE"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "MANUF",
+        "MATERIAL_TRANSFORM",
+        "DOMAIN_EXCL",
+        "ASSET_TRANSFER",
+        "DT",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT",
+        "EDGE"
+      ],
+      "params_used": [
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 7,
+      "rule_id": "R3-nomanuf",
+      "decision": "Exclude",
+      "reason_code": "EX1",
+      "description": "No manufacturing or industrial context detected (§3.2.2(1)).",
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "signal": "MANUF"
+            }
+          },
+          {
+            "not": {
+              "signal": "MATERIAL_TRANSFORM"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "MANUF",
+        "MATERIAL_TRANSFORM"
+      ],
+      "params_used": [],
+      "catch_all": false
+    },
+    {
+      "eval_index": 8,
+      "rule_id": "R4-notheory",
+      "decision": "Exclude",
+      "reason_code": "EX2",
+      "description": "Neither a Digital Twin nor a predictive function is present — no DT or predictive-application connection (§3.2.2(2)).",
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "signal": "DT"
+            }
+          },
+          {
+            "not": {
+              "any": [
+                {
+                  "in_title": "PREDICTIVE"
+                },
+                {
+                  "count_gte_param": {
+                    "signal": "PREDICTIVE",
+                    "param": "predictive_min_count"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "DT",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT"
+      ],
+      "params_used": [
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 9,
+      "rule_id": "R5a-cloud-sink",
+      "decision": "Exclude",
+      "reason_code": "EX3",
+      "description": "Sensing plus cloud analytics: device hardware is named, but the abstract states that data is stored/analyzed in the cloud; on-device inference is not described (§3.2.2(3)).",
+      "predicate": {
+        "all": [
+          {
+            "signal": "CLOUD_SINK"
+          },
+          {
+            "signal": "EDGE"
+          },
+          {
+            "any": [
+              {
+                "in_title": "PREDICTIVE"
+              },
+              {
+                "count_gte_param": {
+                  "signal": "PREDICTIVE",
+                  "param": "predictive_min_count"
+                }
+              }
+            ]
+          },
+          {
+            "count_lt_param": {
+              "signal": "INFER_HW",
+              "param": "infer_hw_min_count"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "CLOUD_SINK",
+        "EDGE",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT",
+        "INFER_HW_COUNT"
+      ],
+      "params_used": [
+        "infer_hw_min_count",
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 10,
+      "rule_id": "R5-dt-absent-include",
+      "decision": "Include",
+      "reason_code": "EXC-CONCEPT",
+      "description": "EXC-CONCEPT: predictive + edge + manufacturing alignment with Digital Twin terminology absent — a DT-equivalent implementation that avoids DT vocabulary. Tier 2 if a machining process is named.",
+      "predicate": {
+        "all": [
+          {
+            "not": {
+              "signal": "DT"
+            }
+          },
+          {
+            "any": [
+              {
+                "in_title": "PREDICTIVE"
+              },
+              {
+                "count_gte_param": {
+                  "signal": "PREDICTIVE",
+                  "param": "predictive_min_count"
+                }
+              }
+            ]
+          },
+          {
+            "signal": "EDGE"
+          },
+          {
+            "any": [
+              {
+                "signal": "MANUF"
+              },
+              {
+                "signal": "MATERIAL_TRANSFORM"
+              }
+            ]
+          }
+        ]
+      },
+      "signals_read": [
+        "DT",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT",
+        "EDGE",
+        "MANUF",
+        "MATERIAL_TRANSFORM"
+      ],
+      "params_used": [
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 11,
+      "rule_id": "R6-dt-nopredict",
+      "decision": "Exclude",
+      "reason_code": "EX4",
+      "description": "Digital Twin without predictive analytics or a data-driven component (§3.2.2(4)).",
+      "predicate": {
+        "all": [
+          {
+            "signal": "DT"
+          },
+          {
+            "not": {
+              "any": [
+                {
+                  "in_title": "PREDICTIVE"
+                },
+                {
+                  "count_gte_param": {
+                    "signal": "PREDICTIVE",
+                    "param": "predictive_min_count"
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "DT",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT"
+      ],
+      "params_used": [
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 12,
+      "rule_id": "R7-ml-noedge",
+      "decision": "Exclude",
+      "reason_code": "EX3",
+      "description": "ML or predictive work with no embedded, edge, or resource-constrained deployment context (§3.2.2(3)).",
+      "predicate": {
+        "all": [
+          {
+            "any": [
+              {
+                "signal": "ML"
+              },
+              {
+                "any": [
+                  {
+                    "in_title": "PREDICTIVE"
+                  },
+                  {
+                    "count_gte_param": {
+                      "signal": "PREDICTIVE",
+                      "param": "predictive_min_count"
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "not": {
+              "signal": "EDGE"
+            }
+          }
+        ]
+      },
+      "signals_read": [
+        "ML",
+        "PREDICTIVE_IN_TITLE",
+        "PREDICTIVE_COUNT",
+        "EDGE"
+      ],
+      "params_used": [
+        "predictive_min_count"
+      ],
+      "catch_all": false
+    },
+    {
+      "eval_index": 13,
+      "rule_id": "R2a-survey",
+      "decision": "Exclude",
+      "reason_code": "EX5",
+      "description": "Survey / review / tutorial: the record declares itself a review of prior work in its title or opening lines, so it presents no empirical results, computational framework, simulation, or hardware prototype (§3.2.1(5)).",
+      "predicate": {
+        "signal": "SURVEY_FRONT"
+      },
+      "signals_read": [
+        "SURVEY_FRONT"
+      ],
+      "params_used": [],
+      "catch_all": false
+    },
+    {
+      "eval_index": 14,
+      "rule_id": "R8-include",
+      "decision": "Include",
+      "reason_code": "INC",
+      "description": "Meets §3.2.1 — manufacturing context, predictive function, and edge/embedded inference.",
+      "predicate": {
+        "const": true
+      },
+      "signals_read": [],
+      "params_used": [],
+      "catch_all": true
+    }
+  ],
+  "post_rules": [
+    {
+      "rule_id": "R0-thin",
+      "stage": "post-pass override, runs after the rule walk and tiering",
+      "condition": "word count of abstract < min_abstract_words AND NOT BAD_RECORD_IN_TITLE",
+      "effect": "decision='Pending', reason_code='', tier='', rule_id='R0-thin' — overwrites whatever rule fired",
+      "params_used": [
+        "min_abstract_words"
+      ],
+      "description": "Abstract too short for a keyword rule to be meaningful. Human full-text check required (possible EX5 or EX8)."
+    }
+  ],
+  "tiering": {
+    "tier_2_condition": {
+      "all": [
+        {
+          "signal": "MACHINING"
+        },
+        {
+          "any": [
+            {
+              "signal": "DT"
+            },
+            {
+              "fired_rule": "R5-dt-absent-include"
+            }
+          ]
+        },
+        {
+          "signal": "EDGE"
+        }
+      ]
+    },
+    "tier_if_condition_false": "1",
+    "tier_if_not_include": "N/A",
+    "tier1_capped_rules": [
+      "R2b-edge-hardware-include"
+    ],
+    "notes": "Tier 2 requires a NAMED machining process; forming/welding caps at Tier 1 (Machining Precedence). The DT half of the Tier 2 test is satisfied by DT vocabulary OR the EXC-CONCEPT code (fired_rule R5-dt-absent-include)."
+  },
+  "codes": {
+    "decisions": [
+      "Include",
+      "Exclude",
+      "Pending"
+    ],
+    "exclude_ladder": [
+      "EX7",
+      "EX6",
+      "EX8",
+      "EX1",
+      "EX2",
+      "EX4",
+      "EX3",
+      "EX5"
+    ],
+    "exclude_codes": {
+      "EX1": "Not material-shaping (domain fail)",
+      "EX2": "No DT AND no predictive — either one present means EX2 does not apply",
+      "EX3": "ML present, but not edge/embedded",
+      "EX4": "DT present, no predictive function",
+      "EX5": "Insufficient method detail — last resort, never the first reach",
+      "EX6": "Not English",
+      "EX7": "Duplicate",
+      "EX8": "Patent / non-peer-reviewed thesis / dataset / book chapter / editorial"
+    },
+    "include_codes": {
+      "INC": "Meets §3.2.1 directly",
+      "EXC-ARXIV": "Documented exception: arXiv preprint (human-only)",
+      "EXC-THESIS": "Documented exception: thesis (human-only)",
+      "EXC-DOMAIN": "Documented exception: mechanism-transfer domain call (human-only)",
+      "EXC-CONCEPT": "Documented exception: DT-equivalent implementation avoiding DT vocabulary (engine-emittable via R5-dt-absent-include)"
+    },
+    "warning": "EXC-* codes are INCLUDE codes (documented-exception admissions), not exclusions. Do not group by prefix.",
+    "codes_source": "RULES_CONSOLIDATED.md (locked 2026-07-20) ladder table + engine UNDECIDABLE block"
+  },
+  "engine_cannot_emit": {
+    "EX5": "Insufficient methodological detail is a judgment about depth, not a keyword. ONE narrow carve-out since 2026-07-21.1: R2a-survey emits EX5 when the record declares itself a survey / review / tutorial in its title or opening lines, because §3.2.1(5)'s requirement for empirical results, a computational framework, a simulation, or a hardware prototype is then answered by the record type itself. Depth of method in a non-review paper remains undecidable. Records with abstracts below the word threshold are routed to Pending for a human.",
+    "EX6": "Non-English — this corpus is English-indexed; the signal is unavailable.",
+    "EX7": "Duplicate — resolved upstream by deduplication (1,664 is post-dedup).",
+    "EXC-*": "[UPDATED 2026-07-24.1] Documented exceptions under the locked codebook are ARXIV / THESIS / DOMAIN / CONCEPT (HMLV was deleted 2026-07-20). ARXIV, THESIS and DOMAIN remain human-only: the engine can flag candidates, but granting them — especially EXC-DOMAIN's mechanism-transfer judgment — is a physics call, not a keyword. EXC-CONCEPT is the one exception the engine emits itself (R5-dt-absent-include): its condition IS lexical — predictive + edge + manufacturing present, DT vocabulary absent — and Dr. Shendokar ratified that exact pattern as the code's definition, naming records 900 and 947."
+  }
+}
